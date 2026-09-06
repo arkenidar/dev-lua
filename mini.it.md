@@ -38,7 +38,10 @@
   linguaggio non ha bisogno di **parentesi**.
 
 Dimostra uno schema classico di interprete in pochissimo spazio, ed è un seme
-naturale per un linguaggio più grande (un tokenizzatore, un vero AST, variabili, ecc.).
+naturale per un linguaggio più grande (un vero AST, variabili, funzioni definite
+dall'utente, ecc.). È già incluso un front-end `tokenizza`: divide il testo
+sorgente nell'array `valori`, così un programma si può scrivere come testo
+semplice invece di un array di token costruito a mano.
 
 ## 2. Il linguaggio
 
@@ -90,7 +93,8 @@ rivalutata a ogni iterazione.
 | `valori` | values (l'array di token) |
 | `indice` / `indici` | index / indices |
 | `pos` | position (cursore dentro `valori`) |
-| `testo` | text (la stringa sorgente, tenuta come documentazione) |
+| `testo` | text (la stringa sorgente, divisa in `valori` da `tokenizza`) |
+| `tokenizza` | tokenize (divide `testo` nell'array di token `valori`) |
 
 ### 3.2 Alias delle parole chiave (Italiano ↔ Inglese)
 
@@ -699,6 +703,11 @@ FizzBuzz
 Fizz
 19
 Buzz
+13
+Hello World
+1
+2
+3
 ```
 
 (funzionano `lua`, `lua5.4`, `lua5.1` o `luajit`.)

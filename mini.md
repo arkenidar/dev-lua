@@ -37,7 +37,10 @@
   language needs **no parentheses**.
 
 It demonstrates a classic interpreter pattern in a very small space, and is a
-natural seed for a larger language (a tokenizer, a real AST, variables, etc.).
+natural seed for a larger language (a real AST, variables, user-defined
+functions, etc.). A `tokenizza` (tokenize) front-end is already included: it
+splits a source string into the flat `valori` array, so a program can be typed
+as plain text instead of a hand-written token array.
 
 ## 2. The language
 
@@ -89,7 +92,8 @@ re-evaluated each iteration.
 | `valori` | values (the token array) |
 | `indice` / `indici` | index / indices |
 | `pos` | position (cursor into `valori`) |
-| `testo` | text (the source string, kept as documentation) |
+| `testo` | text (the source string, split into `valori` by `tokenizza`) |
+| `tokenizza` | tokenize (splits `testo` into the `valori` token array) |
 
 ### 3.2 Keyword aliases (Italian ↔ English)
 
@@ -693,6 +697,11 @@ FizzBuzz
 Fizz
 19
 Buzz
+13
+Hello World
+1
+2
+3
 ```
 
 (`lua`, `lua5.4`, `lua5.1`, or `luajit` all work.)

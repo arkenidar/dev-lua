@@ -198,6 +198,34 @@ for it, en in pairs(lessico.it) do
   if contesto[it] then contesto[en] = contesto[it] end
 end
 
+-- EN: tokenizza (tokenize) splits a source string into a flat token array.
+-- EN: Whitespace separates tokens; a quoted literal ( '...' or "..." ) may
+-- EN: contain spaces and stays a single token. Quotes are kept so that valuta
+-- EN: strips them, exactly as with the hand-written arrays below.
+-- IT: tokenizza divide una stringa sorgente in un array piatto di token.
+-- IT: Gli spazi separano i token; un letterale tra virgolette ( '...' o "..." )
+-- IT: può contenere spazi e resta un singolo token. Le virgolette restano,
+-- IT: così valuta le rimuove, come negli array scritti a mano qui sotto.
+local function tokenizza(testo)
+  local token = {}
+  local i, n = 1, #testo
+  while i <= n do
+    local c = testo:sub(i, i)
+    if c:match("%s") then
+      i = i + 1
+    elseif c == "'" or c == '"' then
+      local j = testo:find(c, i + 1, true) or (n + 1)
+      token[#token + 1] = testo:sub(i, j)
+      i = j + 1
+    else
+      local j = testo:find("%s", i) or (n + 1)
+      token[#token + 1] = testo:sub(i, j - 1)
+      i = j
+    end
+  end
+  return token
+end
+
 -- EN: driver / tests
 -- IT: driver / test
 valori = {"scrivi_rigo","somma","5","prodotto","4","2"}
@@ -301,3 +329,25 @@ valori = {
   "end","end"
 }
 valuta(1)
+
+-- EN: tokenizer demo: feed real source text through tokenizza instead of a
+-- EN: hand-written token array. Output matches the equivalent arrays above.
+-- IT: demo del tokenizzatore: passa vero testo sorgente a tokenizza invece di
+-- IT: un array di token scritto a mano. L'output corrisponde agli array sopra.
+testo = 'scrivi_rigo somma 5 prodotto 4 2'
+valori = tokenizza(testo)
+valuta(1)   -- 13
+
+testo = [[scrivi_rigo 'Hello World']]   -- quotes keep the inner space as one token
+valori = tokenizza(testo)
+valuta(1)   -- Hello World
+
+testo = [[
+  do set i 1
+  while not greater get i 3 do
+    writeline get i
+    set i sum get i 1
+  end end
+]]
+valori = tokenizza(testo)
+valuta(1)   -- 1 2 3
