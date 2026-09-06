@@ -36,9 +36,10 @@
 - each keyword knows how many arguments it consumes (its **arity**), so the
   language needs **no parentheses**.
 
-It demonstrates a classic interpreter pattern in a very small space, and is a
-natural seed for a larger language (a real AST, variables, user-defined
-functions, etc.). A `tokenizza` (tokenize) front-end is already included: it
+It demonstrates a classic interpreter pattern in a very small space. It now has
+variables (`metti`/`prendi`) and user-defined functions (`funzione`), and remains
+a natural seed for a larger language (a real AST, arrays, etc.). A `tokenizza`
+(tokenize) front-end is already included: it
 splits a source string into the flat `valori` array, so a program can be typed
 as plain text instead of a hand-written token array.
 
@@ -50,6 +51,7 @@ as plain text instead of a hand-written token array.
 | `scrivi_rigo` | `scrivi_rigo 5` | print a value + newline |
 | `somma` | `somma 5 6` | add two values (`+`) |
 | `prodotto` | `prodotto 4 2` | multiply two values (`*`) |
+| `sottrai` | `sottrai 5 2` | subtract two values (`-`) |
 | `somma_tutti` | `somma_tutti 1 2 3 4 fine` | **variadic** sum, terminated by `fine` |
 | `metti` | `metti i 1` | assign a value to a variable |
 | `prendi` | `prendi i` | read a variable's value |
@@ -60,6 +62,7 @@ as plain text instead of a hand-written token array.
 | `fai` | `fai ... fine` | a block: sequence of statements, returns the last value |
 | `se` | `se cond ramo_vero ramo_falso` | if/else (lazy: only the taken branch runs) |
 | `mentre` | `mentre cond corpo` | while-loop (condition re-evaluated each iteration) |
+| `funzione` | `funzione nome x fine prodotto prendi x 2` | define a named function (lexical scope) |
 
 Expressions nest recursively, e.g.
 `scrivi_rigo somma 5 prodotto 4 2` evaluates to `5 + (4 × 2) = 13`.
@@ -83,6 +86,15 @@ not executed, so its side effects never happen.
 `mentre cond corpo` repeats the body while the condition is true; the condition is
 re-evaluated each iteration.
 
+`funzione nome param1 param2 ... fine corpo` defines a named function. The
+parameter list ends at the first `fine`; the body is a single expression (wrap
+several statements in `fai ... fine`) and returns its last value, exactly like
+`fai`. Parameters are read with `prendi`, and are **lexically scoped**: the
+function captures the scope in which it is defined, so a function defined inside
+another keeps seeing its parameters even after the outer one returns. Recursion
+is supported, e.g.
+`funzione fatto n fine se uguale prendi n 0 1 prodotto prendi n fatto sottrai prendi n 1`.
+
 ## 3. Glossary
 
 ### 3.1 Code identifiers (internal names)
@@ -96,6 +108,8 @@ re-evaluated each iteration.
 | `pos` | position (cursor into `valori`) |
 | `testo` | text (the source string, split into `valori` by `tokenizza`) |
 | `tokenizza` | tokenize (splits `testo` into the `valori` token array) |
+| `ambiente` | environment / scope (linked chain of variable scopes) |
+| `nuovo_ambito` / `trova_ambito` | new-scope / find-scope (lexical-scope helpers) |
 | `decodifica` | decode (decodes `\n`, `\t`, `\'`, `\"`, `\\` in string literals) |
 
 ### 3.2 Keyword aliases (Italian ↔ English)
@@ -107,6 +121,7 @@ re-evaluated each iteration.
 |---------|---------|
 | `fai` | `do` |
 | `fine` | `end` |
+| `funzione` | `function` |
 | `maggiore` | `greater` |
 | `mentre` | `while` |
 | `metti` | `set` |
@@ -119,6 +134,7 @@ re-evaluated each iteration.
 | `se` | `if` |
 | `somma` | `sum` |
 | `somma_tutti` | `sumall` |
+| `sottrai` | `subtract` |
 | `uguale` | `equal` |
 
 | English | Italian |
@@ -126,6 +142,7 @@ re-evaluated each iteration.
 | `do` | `fai` |
 | `end` | `fine` |
 | `equal` | `uguale` |
+| `function` | `funzione` |
 | `get` | `prendi` |
 | `greater` | `maggiore` |
 | `if` | `se` |
@@ -133,6 +150,7 @@ re-evaluated each iteration.
 | `not` | `non` |
 | `product` | `prodotto` |
 | `set` | `metti` |
+| `subtract` | `sottrai` |
 | `sum` | `somma` |
 | `sumall` | `somma_tutti` |
 | `while` | `mentre` |
@@ -709,6 +727,13 @@ ciao
 a
 b
 it's
+10
+25
+ciao
+14
+15
+120
+18
 ```
 
 (`lua`, `lua5.4`, `lua5.1`, or `luajit` all work.)

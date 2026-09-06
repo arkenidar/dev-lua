@@ -1,7 +1,28 @@
 local contesto={}
--- EN: mutable variable store (metti / prendi read and write here)
--- IT: archivio delle variabili mutabili (metti / prendi leggono e scrivono qui)
-local variabili={}
+-- EN: variable environment: a linked chain of scopes (prototype chain).
+-- EN: prendi reads through the chain; metti updates the nearest binding.
+-- EN: functions capture this chain lexically (see funzione below).
+-- IT: ambiente delle variabili: una catena collegata di ambiti (catena di prototipi).
+-- IT: prendi legge attraverso la catena; metti aggiorna il legame più vicino.
+-- IT: le funzioni catturano questa catena lessicalmente (vedi funzione sotto).
+local ambiente = {}
+-- EN: nuovo_ambito(genitore) creates a child scope that inherits from its parent.
+-- IT: nuovo_ambito(genitore) crea un ambito figlio che eredita dal genitore.
+local function nuovo_ambito(genitore)
+  return setmetatable({}, { __index = genitore })
+end
+-- EN: trova_ambito(nome) returns the scope that owns `nome`, walking outward
+-- EN: (nil if the name is unbound anywhere).
+-- IT: trova_ambito(nome) restituisce l'ambito che possiede `nome`, risalendo
+-- IT: (nil se il nome non è legato da nessuna parte).
+local function trova_ambito(nome)
+  local amb = ambiente
+  while amb do
+    if rawget(amb, nome) ~= nil then return amb end
+    amb = getmetatable(amb) and getmetatable(amb).__index
+  end
+  return nil
+end
 -- EN: skip flag: when true, side-effecting builtins (scrivi, scrivi_rigo, metti)
 -- EN: do nothing. Used to skip an un-taken branch without executing it.
 -- IT: flag "salta": quando è true, le funzioni con effetti (scrivi, scrivi_rigo,
@@ -85,12 +106,22 @@ end
 function contesto.somma ( pos )
   local a; a, pos = valuta(pos)
   local b; b, pos = valuta(pos)
+  if salta then return 0, pos end
   return a + b, pos
 end
 function contesto.prodotto ( pos )
   local a; a, pos = valuta(pos)
   local b; b, pos = valuta(pos)
+  if salta then return 0, pos end
   return a * b, pos
+end
+-- EN: sottrai <a> <b> : subtraction (a - b)
+-- IT: sottrai <a> <b> : sottrazione (a - b)
+function contesto.sottrai ( pos )
+  local a; a, pos = valuta(pos)
+  local b; b, pos = valuta(pos)
+  if salta then return 0, pos end
+  return a - b, pos
 end
 
 -- EN: metti <name> <value> : assign a value to a variable. The name is read as a
@@ -100,14 +131,17 @@ end
 function contesto.metti ( pos )
   local nome = valori[pos]
   local v; v, pos = valuta(pos + 1)
-  if not salta then variabili[nome] = v end
+  if not salta then
+    local amb = trova_ambito(nome) or ambiente
+    amb[nome] = v
+  end
   return v, pos
 end
--- EN: prendi <name> : read a variable's value.
--- IT: prendi <nome> : legge il valore di una variabile.
+-- EN: prendi <name> : read a variable's value through the scope chain.
+-- IT: prendi <nome> : legge il valore di una variabile attraverso la catena.
 function contesto.prendi ( pos )
   local nome = valori[pos]
-  return variabili[nome], pos + 1
+  return ambiente[nome], pos + 1
 end
 
 -- EN: modulo <dividend> <divisor> : remainder (a % b)
@@ -115,6 +149,7 @@ end
 function contesto.modulo ( pos )
   local a; a, pos = valuta(pos)
   local b; b, pos = valuta(pos)
+  if salta then return 0, pos end
   return a % b, pos
 end
 -- EN: uguale <a> <b> : equality (a == b)
@@ -122,6 +157,7 @@ end
 function contesto.uguale ( pos )
   local a; a, pos = valuta(pos)
   local b; b, pos = valuta(pos)
+  if salta then return false, pos end
   return a == b, pos
 end
 -- EN: maggiore <a> <b> : greater-than (a > b)
@@ -129,12 +165,14 @@ end
 function contesto.maggiore ( pos )
   local a; a, pos = valuta(pos)
   local b; b, pos = valuta(pos)
+  if salta then return false, pos end
   return a > b, pos
 end
 -- EN: non <a> : logical negation (not a)
 -- IT: non <a> : negazione logica (not a)
 function contesto.non ( pos )
   local a; a, pos = valuta(pos)
+  if salta then return false, pos end
   return not a, pos
 end
 
@@ -149,7 +187,7 @@ function contesto.somma_tutti ( pos )
   local v
   while valori[pos] and not terminatore[valori[pos]] do
     v, pos = valuta(pos)
-    tot = tot + v
+    if not salta then tot = tot + v end
   end
   return tot, pos + 1
 end
@@ -201,6 +239,78 @@ function contesto.mentre ( pos )
       cond = valuta(inizio)      -- re-evaluate the condition
     end
   end
+  return nil, dopo
+end
+
+-- EN: funzione <name> <params...> fine <body> : define a named function.
+-- EN: params are bound lexically (the closure captures the defining scope); the
+-- EN: body is a single expression (wrap several statements in fai ... fine) and
+-- EN: returns its last value, exactly like fai. Parameters are read with prendi.
+-- IT: funzione <nome> <parametri...> fine <corpo> : definisce una funzione con nome.
+-- IT: i parametri sono legati lessicalmente (la chiusura cattura l'ambito di
+-- IT: definizione); il corpo è una singola espressione (per più istruzioni usa
+-- IT: fai ... fine) e restituisce l'ultimo valore, come fai. I parametri si
+-- IT: leggono con prendi.
+function contesto.funzione ( pos )
+  local nome = valori[pos]                       -- function name (raw token)
+  local parametri = {}
+  pos = pos + 1
+  while valori[pos] and not terminatore[valori[pos]] do
+    parametri[#parametri + 1] = valori[pos]
+    pos = pos + 1
+  end
+  pos = pos + 1                                  -- skip the 'fine' terminator
+  local corpo = pos
+
+  -- EN: register a temporary placeholder (arity = #params) so that a recursive
+  -- EN: reference to the function itself parses with the right arity while the
+  -- EN: body extent is measured below (salta_espr runs in skip mode).
+  -- IT: registra un segnaposto temporaneo (arietà = #parametri) così un
+  -- IT: riferimento ricorsivo alla funzione stessa viene analizzato con la giusta
+  -- IT: arietà mentre si misura l'estensione del corpo (salta_espr in modalità salta).
+  local precedente = contesto[nome]
+  contesto[nome] = function ( p )
+    for _ = 1, #parametri do
+      local v; v, p = valuta(p)
+    end
+    return nil, p
+  end
+
+  local dopo = salta_espr(corpo)                 -- body extent (parsed, not run)
+
+  -- EN: capture the body tokens and the defining scope by value, so the function
+  -- EN: keeps working after `valori` / `ambiente` change (lexical closure).
+  -- IT: cattura i token del corpo e l'ambito di definizione per valore, così la
+  -- IT: funzione continua a funzionare dopo che `valori` / `ambiente` cambiano.
+  local corpo_valori = {}
+  for k = corpo, dopo - 1 do
+    corpo_valori[#corpo_valori + 1] = valori[k]
+  end
+  local ambito_def = ambiente
+
+  if salta then
+    contesto[nome] = precedente                 -- skip mode: don't define it
+    return nil, dopo
+  end
+
+  contesto[nome] = function ( p )
+    local argomenti = {}
+    for _, par in ipairs(parametri) do
+      local v; v, p = valuta(p)                -- evaluate args in the caller's scope
+      argomenti[par] = v
+    end
+    if salta then return nil, p end            -- skip mode: consume args only
+
+    local amb_esterno, valori_esterni = ambiente, valori
+    ambiente = nuovo_ambito(ambito_def)        -- lexical parent = defining scope
+    for par, v in pairs(argomenti) do ambiente[par] = v end
+    valori = corpo_valori
+    local risultato = valuta(1)                -- evaluate the body
+    valori = valori_esterni
+    ambiente = amb_esterno
+    return risultato, p                        -- body value, caller's cursor
+  end
+
   return nil, dopo
 end
 
@@ -391,3 +501,66 @@ valuta(1)   -- a then b (two lines)
 testo = [[scrivi_rigo 'it\'s']]
 valori = tokenizza(testo)
 valuta(1)   -- it's
+
+-- ============================================================
+-- EN: user-defined functions (funzione ... fine), lexical scope
+-- IT: funzioni definite dall'utente (funzione ... fine), ambito lessicale
+-- ============================================================
+
+-- EN: a one-expression function; its parameter is read back with prendi
+-- IT: una funzione con una sola espressione; il parametro si rilegge con prendi
+testo = [[funzione doppio x fine prodotto prendi x 2]]
+valori = tokenizza(testo)
+valuta(1)                          -- defines doppio
+testo = [[scrivi_rigo doppio 5]]
+valori = tokenizza(testo)
+valuta(1)                          -- 10
+
+-- EN: two parameters, single-expression body
+-- IT: due parametri, corpo a singola espressione
+testo = [[funzione somma_quadrati a b fine somma prodotto prendi a prendi a prodotto prendi b prendi b]]
+valori = tokenizza(testo)
+valuta(1)                          -- defines somma_quadrati
+testo = [[scrivi_rigo somma_quadrati 3 4]]
+valori = tokenizza(testo)
+valuta(1)                          -- 9 + 16 = 25
+
+-- EN: multi-statement body via fai ... fine; returns the last value
+-- IT: corpo a più istruzioni via fai ... fine; restituisce l'ultimo valore
+testo = [[funzione saluta_e_doppia n fine fai scrivi_rigo 'ciao' prodotto prendi n 2 fine]]
+valori = tokenizza(testo)
+valuta(1)                          -- defines saluta_e_doppia
+testo = [[scrivi_rigo saluta_e_doppia 7]]
+valori = tokenizza(testo)
+valuta(1)                          -- prints ciao then 14
+
+-- EN: lexical closure: interno remembers `a` even after esterno returns
+-- IT: chiusura lessicale: interno ricorda `a` anche dopo che esterno ritorna
+testo = [[funzione esterno a fine funzione interno b fine somma prendi a prendi b]]
+valori = tokenizza(testo)
+valuta(1)                          -- defines esterno
+testo = [[esterno 10]]
+valori = tokenizza(testo)
+valuta(1)                          -- defines interno capturing a = 10
+testo = [[scrivi_rigo interno 5]]
+valori = tokenizza(testo)
+valuta(1)                          -- 15 (lexical: interno still sees a = 10)
+
+-- EN: recursion (needs sottrai); factorial of 5
+-- IT: ricorsione (richiede sottrai); fattoriale di 5
+testo = [[funzione fatto n fine se uguale prendi n 0 1 prodotto prendi n fatto sottrai prendi n 1]]
+valori = tokenizza(testo)
+valuta(1)                          -- defines fatto
+testo = [[scrivi_rigo fatto 5]]
+valori = tokenizza(testo)
+valuta(1)                          -- 120
+
+-- EN: user-defined words also work through the English alias of the keyword
+-- IT: le parole definite dall'utente funzionano anche con l'alias inglese
+testo = [[function double x end product get x 2]]
+valori = tokenizza(testo)
+valuta(1)                          -- defines double
+testo = [[writeline double 9]]
+valori = tokenizza(testo)
+valuta(1)                          -- 18
+

@@ -9,6 +9,7 @@ local it = {
   scrivi      = "write",
   scrivi_rigo = "writeline",
   somma       = "sum",
+  sottrai     = "subtract",
   prodotto    = "product",
   somma_tutti = "sumall",
   modulo      = "modulus",
@@ -20,6 +21,7 @@ local it = {
   fai         = "do",
   se          = "if",
   mentre      = "while",
+  funzione    = "function",
   fine        = "end",
 }
 

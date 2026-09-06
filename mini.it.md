@@ -37,9 +37,10 @@
 - ogni parola chiave sa quanti argomenti consuma (la sua **arietà**), quindi il
   linguaggio non ha bisogno di **parentesi**.
 
-Dimostra uno schema classico di interprete in pochissimo spazio, ed è un seme
-naturale per un linguaggio più grande (un vero AST, variabili, funzioni definite
-dall'utente, ecc.). È già incluso un front-end `tokenizza`: divide il testo
+Dimostra uno schema classico di interprete in pochissimo spazio. Ora ha
+variabili (`metti`/`prendi`) e funzioni definite dall'utente (`funzione`), e resta
+un seme naturale per un linguaggio più grande (un vero AST, array, ecc.). È già
+incluso un front-end `tokenizza`: divide il testo
 sorgente nell'array `valori`, così un programma si può scrivere come testo
 semplice invece di un array di token costruito a mano.
 
@@ -51,6 +52,7 @@ semplice invece di un array di token costruito a mano.
 | `scrivi_rigo` | `scrivi_rigo 5` | stampa un valore + a capo |
 | `somma` | `somma 5 6` | somma due valori (`+`) |
 | `prodotto` | `prodotto 4 2` | moltiplica due valori (`*`) |
+| `sottrai` | `sottrai 5 2` | sottrae due valori (`-`) |
 | `somma_tutti` | `somma_tutti 1 2 3 4 fine` | somma **variadica**, terminata da `fine` |
 | `metti` | `metti i 1` | assegna un valore a una variabile |
 | `prendi` | `prendi i` | legge il valore di una variabile |
@@ -61,6 +63,7 @@ semplice invece di un array di token costruito a mano.
 | `fai` | `fai ... fine` | un blocco: sequenza di istruzioni, restituisce l'ultimo valore |
 | `se` | `se cond ramo_vero ramo_falso` | se/altrimenti (lazy: solo il ramo scelto viene eseguito) |
 | `mentre` | `mentre cond corpo` | ciclo while (la condizione è rivalutata a ogni iterazione) |
+| `funzione` | `funzione nome x fine prodotto prendi x 2` | definisce una funzione con nome (ambito lessicale) |
 
 Le espressioni si annidano ricorsivamente, ad es.
 `scrivi_rigo somma 5 prodotto 4 2` vale `5 + (4 × 2) = 13`.
@@ -84,6 +87,15 @@ non eseguito, quindi i suoi effetti non avvengono mai.
 `mentre cond corpo` ripete il corpo finché la condizione è vera; la condizione è
 rivalutata a ogni iterazione.
 
+`funzione nome param1 param2 ... fine corpo` definisce una funzione con nome. La
+lista dei parametri termina al primo `fine`; il corpo è una singola espressione
+(per più istruzioni racchiudi in `fai ... fine`) e restituisce l'ultimo valore,
+esattamente come `fai`. I parametri si leggono con `prendi`, e sono **scopati
+lessicalmente**: la funzione cattura l'ambito in cui è definita, quindi una
+funzione definita dentro un'altra continua a vedere i suoi parametri anche dopo
+che quella esterna ritorna. La ricorsione è supportata, ad es.
+`funzione fatto n fine se uguale prendi n 0 1 prodotto prendi n fatto sottrai prendi n 1`.
+
 ## 3. Glossario
 
 ### 3.1 Identificatori del codice (nomi interni)
@@ -97,6 +109,8 @@ rivalutata a ogni iterazione.
 | `pos` | position (cursore dentro `valori`) |
 | `testo` | text (la stringa sorgente, divisa in `valori` da `tokenizza`) |
 | `tokenizza` | tokenize (divide `testo` nell'array di token `valori`) |
+| `ambiente` | environment / scope (catena collegata di ambiti di variabili) |
+| `nuovo_ambito` / `trova_ambito` | new-scope / find-scope (aiuti per l'ambito lessicale) |
 | `decodifica` | decode (decodifica `\n`, `\t`, `\'`, `\"`, `\\` nei letterali stringa) |
 
 ### 3.2 Alias delle parole chiave (Italiano ↔ Inglese)
@@ -108,6 +122,7 @@ rivalutata a ogni iterazione.
 |---------|---------|
 | `fai` | `do` |
 | `fine` | `end` |
+| `funzione` | `function` |
 | `maggiore` | `greater` |
 | `mentre` | `while` |
 | `metti` | `set` |
@@ -120,6 +135,7 @@ rivalutata a ogni iterazione.
 | `se` | `if` |
 | `somma` | `sum` |
 | `somma_tutti` | `sumall` |
+| `sottrai` | `subtract` |
 | `uguale` | `equal` |
 
 | Inglese | Italiano |
@@ -127,6 +143,7 @@ rivalutata a ogni iterazione.
 | `do` | `fai` |
 | `end` | `fine` |
 | `equal` | `uguale` |
+| `function` | `funzione` |
 | `get` | `prendi` |
 | `greater` | `maggiore` |
 | `if` | `se` |
@@ -134,6 +151,7 @@ rivalutata a ogni iterazione.
 | `not` | `non` |
 | `product` | `prodotto` |
 | `set` | `metti` |
+| `subtract` | `sottrai` |
 | `sum` | `somma` |
 | `sumall` | `somma_tutti` |
 | `while` | `mentre` |
@@ -715,6 +733,13 @@ ciao
 a
 b
 it's
+10
+25
+ciao
+14
+15
+120
+18
 ```
 
 (funzionano `lua`, `lua5.4`, `lua5.1` o `luajit`.)
