@@ -50,6 +50,10 @@ natural seed for a larger language (a tokenizer, a real AST, variables, etc.).
 | `somma_tutti` | `somma_tutti 1 2 3 4 fine` | **variadic** sum, terminated by `fine` |
 | `metti` | `metti i 1` | assign a value to a variable |
 | `prendi` | `prendi i` | read a variable's value |
+| `modulo` | `modulo 7 3` | remainder (`%`) |
+| `uguale` | `uguale 1 1` | equality test (`==`) |
+| `maggiore` | `maggiore 5 3` | greater-than test (`>`) |
+| `non` | `non uguale 1 2` | logical negation (`not`) |
 
 Expressions nest recursively, e.g.
 `scrivi_rigo somma 5 prodotto 4 2` evaluates to `5 + (4 × 2) = 13`.
@@ -62,6 +66,9 @@ either `fine` or `end`.
 Values can be stored in variables with `metti` (assign) and read back with
 `prendi` (get). String literals are written between matching quotes (`'Fizz'` or
 `"Fizz"`); the quotes are stripped when the literal is evaluated.
+
+Comparison words (`uguale`, `maggiore`, `non`) produce boolean values
+(`true`/`false`), which the control-flow words (introduced later) rely on.
 
 ## 3. Glossary
 
@@ -84,18 +91,26 @@ Values can be stored in variables with `metti` (assign) and read back with
 | Italian | English |
 |---------|---------|
 | `fine` | `end` |
+| `maggiore` | `greater` |
 | `metti` | `set` |
+| `modulo` | `modulus` |
+| `non` | `not` |
 | `prendi` | `get` |
 | `prodotto` | `product` |
 | `scrivi` | `write` |
 | `scrivi_rigo` | `writeline` |
 | `somma` | `sum` |
 | `somma_tutti` | `sumall` |
+| `uguale` | `equal` |
 
 | English | Italian |
 |---------|---------|
 | `end` | `fine` |
+| `equal` | `uguale` |
 | `get` | `prendi` |
+| `greater` | `maggiore` |
+| `modulus` | `modulo` |
+| `not` | `non` |
 | `product` | `prodotto` |
 | `set` | `metti` |
 | `sum` | `somma` |

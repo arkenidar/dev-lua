@@ -50,7 +50,7 @@ function contesto.scrivi ( pos )
 end
 function contesto.scrivi_rigo ( pos )
   local v; v, pos = valuta(pos)
-  io.write( v .. "\n" )
+  io.write( tostring(v) .. "\n" )
   return nil, pos
 end
 function contesto.somma ( pos )
@@ -79,6 +79,34 @@ end
 function contesto.prendi ( pos )
   local nome = valori[pos]
   return variabili[nome], pos + 1
+end
+
+-- EN: modulo <dividend> <divisor> : remainder (a % b)
+-- IT: modulo <dividendo> <divisore> : resto (a % b)
+function contesto.modulo ( pos )
+  local a; a, pos = valuta(pos)
+  local b; b, pos = valuta(pos)
+  return a % b, pos
+end
+-- EN: uguale <a> <b> : equality (a == b)
+-- IT: uguale <a> <b> : uguaglianza (a == b)
+function contesto.uguale ( pos )
+  local a; a, pos = valuta(pos)
+  local b; b, pos = valuta(pos)
+  return a == b, pos
+end
+-- EN: maggiore <a> <b> : greater-than (a > b)
+-- IT: maggiore <a> <b> : maggiore-di (a > b)
+function contesto.maggiore ( pos )
+  local a; a, pos = valuta(pos)
+  local b; b, pos = valuta(pos)
+  return a > b, pos
+end
+-- EN: non <a> : logical negation (not a)
+-- IT: non <a> : negazione logica (not a)
+function contesto.non ( pos )
+  local a; a, pos = valuta(pos)
+  return not a, pos
 end
 
 -- EN: variadic sum: consumes arguments until the terminator ("fine" / "end")
@@ -135,3 +163,17 @@ valuta(1)   -- reads i back, prints 5
 -- IT: le virgolette dei letterali stringa vengono rimosse
 valori = {"scrivi_rigo","'Fizz'"}
 valuta(1)   -- prints Fizz
+
+-- EN: arithmetic and comparison words
+-- IT: parole aritmetiche e di confronto
+valori = {"scrivi_rigo","modulo","7","3"}
+valuta(1)   -- 7 % 3 = 1
+
+valori = {"scrivi_rigo","uguale","0","modulo","15","3"}
+valuta(1)   -- 0 == (15 % 3) -> true
+
+valori = {"scrivi_rigo","maggiore","5","3"}
+valuta(1)   -- 5 > 3 -> true
+
+valori = {"scrivi_rigo","non","uguale","1","2"}
+valuta(1)   -- not (1 == 2) -> true

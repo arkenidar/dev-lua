@@ -51,6 +51,10 @@ naturale per un linguaggio più grande (un tokenizzatore, un vero AST, variabili
 | `somma_tutti` | `somma_tutti 1 2 3 4 fine` | somma **variadica**, terminata da `fine` |
 | `metti` | `metti i 1` | assegna un valore a una variabile |
 | `prendi` | `prendi i` | legge il valore di una variabile |
+| `modulo` | `modulo 7 3` | resto (`%`) |
+| `uguale` | `uguale 1 1` | test di uguaglianza (`==`) |
+| `maggiore` | `maggiore 5 3` | test maggiore-di (`>`) |
+| `non` | `non uguale 1 2` | negazione logica (`not`) |
 
 Le espressioni si annidano ricorsivamente, ad es.
 `scrivi_rigo somma 5 prodotto 4 2` vale `5 + (4 × 2) = 13`.
@@ -63,6 +67,9 @@ può essere sia `fine` sia `end`.
 I valori possono essere salvati nelle variabili con `metti` e riletti con
 `prendi`. I letterali stringa si scrivono tra virgolette corrispondenti (`'Fizz'`
 o `"Fizz"`); le virgolette vengono rimosse quando il letterale è valutato.
+
+Le parole di confronto (`uguale`, `maggiore`, `non`) producono valori booleani
+(`true`/`false`), su cui si basano le parole di controllo di flusso (introdotte più avanti).
 
 ## 3. Glossario
 
@@ -85,18 +92,26 @@ o `"Fizz"`); le virgolette vengono rimosse quando il letterale è valutato.
 | Italiano | Inglese |
 |---------|---------|
 | `fine` | `end` |
+| `maggiore` | `greater` |
 | `metti` | `set` |
+| `modulo` | `modulus` |
+| `non` | `not` |
 | `prendi` | `get` |
 | `prodotto` | `product` |
 | `scrivi` | `write` |
 | `scrivi_rigo` | `writeline` |
 | `somma` | `sum` |
 | `somma_tutti` | `sumall` |
+| `uguale` | `equal` |
 
 | Inglese | Italiano |
 |---------|---------|
 | `end` | `fine` |
+| `equal` | `uguale` |
 | `get` | `prendi` |
+| `greater` | `maggiore` |
+| `modulus` | `modulo` |
+| `not` | `non` |
 | `product` | `prodotto` |
 | `set` | `metti` |
 | `sum` | `somma` |
