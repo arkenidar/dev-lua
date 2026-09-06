@@ -17,6 +17,7 @@ local it = {
   non         = "not",
   metti       = "set",
   prendi      = "get",
+  fai         = "do",
   fine        = "end",
 }
 

@@ -55,6 +55,7 @@ naturale per un linguaggio più grande (un tokenizzatore, un vero AST, variabili
 | `uguale` | `uguale 1 1` | test di uguaglianza (`==`) |
 | `maggiore` | `maggiore 5 3` | test maggiore-di (`>`) |
 | `non` | `non uguale 1 2` | negazione logica (`not`) |
+| `fai` | `fai ... fine` | un blocco: sequenza di istruzioni, restituisce l'ultimo valore |
 
 Le espressioni si annidano ricorsivamente, ad es.
 `scrivi_rigo somma 5 prodotto 4 2` vale `5 + (4 × 2) = 13`.
@@ -70,6 +71,7 @@ o `"Fizz"`); le virgolette vengono rimosse quando il letterale è valutato.
 
 Le parole di confronto (`uguale`, `maggiore`, `non`) producono valori booleani
 (`true`/`false`), su cui si basano le parole di controllo di flusso (introdotte più avanti).
+`fai ... fine` raggruppa più istruzioni in un singolo blocco, restituendo l'ultimo valore.
 
 ## 3. Glossario
 
@@ -91,6 +93,7 @@ Le parole di confronto (`uguale`, `maggiore`, `non`) producono valori booleani
 
 | Italiano | Inglese |
 |---------|---------|
+| `fai` | `do` |
 | `fine` | `end` |
 | `maggiore` | `greater` |
 | `metti` | `set` |
@@ -106,6 +109,7 @@ Le parole di confronto (`uguale`, `maggiore`, `non`) producono valori booleani
 
 | Inglese | Italiano |
 |---------|---------|
+| `do` | `fai` |
 | `end` | `fine` |
 | `equal` | `uguale` |
 | `get` | `prendi` |

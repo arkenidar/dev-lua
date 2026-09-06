@@ -125,6 +125,18 @@ function contesto.somma_tutti ( pos )
   return tot, pos + 1
 end
 
+-- EN: fai ... fine : a block/sequence. Evaluates statements until the terminator
+-- EN: (fine / end) and returns the last value.
+-- IT: fai ... fine : un blocco/sequenza. Valuta le istruzioni fino al terminatore
+-- IT: (fine / end) e restituisce l'ultimo valore.
+function contesto.fai ( pos )
+  local v
+  while valori[pos] and not terminatore[valori[pos]] do
+    v, pos = valuta(pos)
+  end
+  return v, pos + 1
+end
+
 -- EN: register English aliases for every built-in keyword
 -- IT: registra gli alias inglesi per ogni parola chiave incorporata
 for it, en in pairs(lessico.it) do
@@ -177,3 +189,11 @@ valuta(1)   -- 5 > 3 -> true
 
 valori = {"scrivi_rigo","non","uguale","1","2"}
 valuta(1)   -- not (1 == 2) -> true
+
+-- EN: fai (block): a sequence of statements, returning the last value
+-- IT: fai (blocco): una sequenza di istruzioni, restituisce l'ultimo valore
+valori = {"fai","scrivi_rigo","'a'","scrivi_rigo","'b'","fine"}
+valuta(1)   -- prints a then b
+
+valori = {"scrivi_rigo","fai","somma","1","2","fine"}
+valuta(1)   -- block returns 3
