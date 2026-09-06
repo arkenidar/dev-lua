@@ -2,6 +2,11 @@ local contesto={}
 -- EN: mutable variable store (metti / prendi read and write here)
 -- IT: archivio delle variabili mutabili (metti / prendi leggono e scrivono qui)
 local variabili={}
+-- EN: skip flag: when true, side-effecting builtins (scrivi, scrivi_rigo, metti)
+-- EN: do nothing. Used to skip an un-taken branch without executing it.
+-- IT: flag "salta": quando è true, le funzioni con effetti (scrivi, scrivi_rigo,
+-- IT: metti) non fanno nulla. Serve a saltare un ramo non scelto senza eseguirlo.
+local salta = false
 local testo='scrivi_rigo somma 5 prodotto 4 2'
 local valori={"scrivi_rigo","somma","5","prodotto","4","2"}
 
@@ -34,6 +39,18 @@ local function valuta(pos)
   return valore, pos + 1
 end
 
+-- EN: salta_espr(pos) parses (consumes) one expression WITHOUT executing its
+-- EN: side effects, and returns the position just past it.
+-- IT: salta_espr(pos) analizza (consuma) un'espressione SENZA eseguirne gli
+-- IT: effetti e restituisce la posizione appena oltre essa.
+local function salta_espr(pos)
+  local prima = salta
+  salta = true
+  local _, dopo = valuta(pos)
+  salta = prima
+  return dopo
+end
+
 -- EN: Every builtin receives a position and returns (value, next_pos).
 -- EN: Arity is implicit: a function consumes as many tokens as it calls valuta().
 -- EN: NOTE: reassign the `pos` parameter (v, pos = valuta(pos)); never declare a
@@ -45,12 +62,12 @@ end
 
 function contesto.scrivi ( pos )
   local v; v, pos = valuta(pos)
-  io.write( v )
+  if not salta then io.write( v ) end
   return nil, pos
 end
 function contesto.scrivi_rigo ( pos )
   local v; v, pos = valuta(pos)
-  io.write( tostring(v) .. "\n" )
+  if not salta then io.write( tostring(v) .. "\n" ) end
   return nil, pos
 end
 function contesto.somma ( pos )
@@ -71,7 +88,7 @@ end
 function contesto.metti ( pos )
   local nome = valori[pos]
   local v; v, pos = valuta(pos + 1)
-  variabili[nome] = v
+  if not salta then variabili[nome] = v end
   return v, pos
 end
 -- EN: prendi <name> : read a variable's value.
@@ -137,6 +154,25 @@ function contesto.fai ( pos )
   return v, pos + 1
 end
 
+-- EN: se <condition> <then> <else> : if the condition is truthy, evaluate and
+-- EN: return the then-expression, otherwise the else-expression. The un-taken
+-- EN: branch is skipped (parsed but not executed).
+-- IT: se <condizione> <allora> <altrimenti> : se la condizione è vera, valuta e
+-- IT: restituisce l'espressione-allora, altrimenti l'espressione-altrimenti. Il
+-- IT: ramo non scelto viene saltato (analizzato ma non eseguito).
+function contesto.se ( pos )
+  local cond; cond, pos = valuta(pos)
+  local v
+  if cond then
+    v, pos = valuta(pos)    -- then-branch (executed)
+    pos = salta_espr(pos)   -- skip else-branch
+  else
+    pos = salta_espr(pos)   -- skip then-branch
+    v, pos = valuta(pos)    -- else-branch (executed)
+  end
+  return v, pos
+end
+
 -- EN: register English aliases for every built-in keyword
 -- IT: registra gli alias inglesi per ogni parola chiave incorporata
 for it, en in pairs(lessico.it) do
@@ -197,3 +233,16 @@ valuta(1)   -- prints a then b
 
 valori = {"scrivi_rigo","fai","somma","1","2","fine"}
 valuta(1)   -- block returns 3
+
+-- EN: se (if/else): lazy evaluation, the un-taken branch is skipped
+-- IT: se (se/altrimenti): valutazione lazy, il ramo non scelto è saltato
+valori = {"scrivi_rigo","se","uguale","1","1","'vero'","'falso'"}
+valuta(1)   -- condition true -> prints vero
+
+valori = {"scrivi_rigo","se","uguale","1","2","'vero'","'falso'"}
+valuta(1)   -- condition false -> prints falso
+
+-- EN: the un-taken branch must NOT run
+-- IT: il ramo non scelto NON deve essere eseguito
+valori = {"se","uguale","1","1","scrivi_rigo","'si'","scrivi_rigo","'no'"}
+valuta(1)   -- prints si only

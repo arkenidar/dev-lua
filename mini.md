@@ -55,6 +55,7 @@ natural seed for a larger language (a tokenizer, a real AST, variables, etc.).
 | `maggiore` | `maggiore 5 3` | greater-than test (`>`) |
 | `non` | `non uguale 1 2` | logical negation (`not`) |
 | `fai` | `fai ... fine` | a block: sequence of statements, returns the last value |
+| `se` | `se cond ramo_vero ramo_falso` | if/else (lazy: only the taken branch runs) |
 
 Expressions nest recursively, e.g.
 `scrivi_rigo somma 5 prodotto 4 2` evaluates to `5 + (4 × 2) = 13`.
@@ -71,6 +72,8 @@ Values can be stored in variables with `metti` (assign) and read back with
 Comparison words (`uguale`, `maggiore`, `non`) produce boolean values
 (`true`/`false`), which the control-flow words (introduced later) rely on.
 `fai ... fine` groups several statements into a single block, returning the last value.
+`se cond ramo_vero ramo_falso` picks one branch; the un-taken branch is parsed but
+not executed, so its side effects never happen.
 
 ## 3. Glossary
 
@@ -102,6 +105,7 @@ Comparison words (`uguale`, `maggiore`, `non`) produce boolean values
 | `prodotto` | `product` |
 | `scrivi` | `write` |
 | `scrivi_rigo` | `writeline` |
+| `se` | `if` |
 | `somma` | `sum` |
 | `somma_tutti` | `sumall` |
 | `uguale` | `equal` |
@@ -113,6 +117,7 @@ Comparison words (`uguale`, `maggiore`, `non`) produce boolean values
 | `equal` | `uguale` |
 | `get` | `prendi` |
 | `greater` | `maggiore` |
+| `if` | `se` |
 | `modulus` | `modulo` |
 | `not` | `non` |
 | `product` | `prodotto` |

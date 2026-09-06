@@ -18,6 +18,7 @@ local it = {
   metti       = "set",
   prendi      = "get",
   fai         = "do",
+  se          = "if",
   fine        = "end",
 }
 

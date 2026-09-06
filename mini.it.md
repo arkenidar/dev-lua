@@ -56,6 +56,7 @@ naturale per un linguaggio più grande (un tokenizzatore, un vero AST, variabili
 | `maggiore` | `maggiore 5 3` | test maggiore-di (`>`) |
 | `non` | `non uguale 1 2` | negazione logica (`not`) |
 | `fai` | `fai ... fine` | un blocco: sequenza di istruzioni, restituisce l'ultimo valore |
+| `se` | `se cond ramo_vero ramo_falso` | se/altrimenti (lazy: solo il ramo scelto viene eseguito) |
 
 Le espressioni si annidano ricorsivamente, ad es.
 `scrivi_rigo somma 5 prodotto 4 2` vale `5 + (4 × 2) = 13`.
@@ -72,6 +73,8 @@ o `"Fizz"`); le virgolette vengono rimosse quando il letterale è valutato.
 Le parole di confronto (`uguale`, `maggiore`, `non`) producono valori booleani
 (`true`/`false`), su cui si basano le parole di controllo di flusso (introdotte più avanti).
 `fai ... fine` raggruppa più istruzioni in un singolo blocco, restituendo l'ultimo valore.
+`se cond ramo_vero ramo_falso` sceglie un ramo; il ramo non scelto è analizzato ma
+non eseguito, quindi i suoi effetti non avvengono mai.
 
 ## 3. Glossario
 
@@ -103,6 +106,7 @@ Le parole di confronto (`uguale`, `maggiore`, `non`) producono valori booleani
 | `prodotto` | `product` |
 | `scrivi` | `write` |
 | `scrivi_rigo` | `writeline` |
+| `se` | `if` |
 | `somma` | `sum` |
 | `somma_tutti` | `sumall` |
 | `uguale` | `equal` |
@@ -114,6 +118,7 @@ Le parole di confronto (`uguale`, `maggiore`, `non`) producono valori booleani
 | `equal` | `uguale` |
 | `get` | `prendi` |
 | `greater` | `maggiore` |
+| `if` | `se` |
 | `modulus` | `modulo` |
 | `not` | `non` |
 | `product` | `prodotto` |
