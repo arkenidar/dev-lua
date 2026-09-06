@@ -1,5 +1,7 @@
--- glossario.lua — generates the Markdown glossary tables from lessico.lua.
--- Run with:  lua5.4 glossario.lua
+-- EN: glossario.lua — generates the Markdown glossary tables from lessico.lua.
+-- EN: Run with:  lua5.4 glossario.lua
+-- IT: glossario.lua — genera le tabelle del glossario in Markdown da lessico.lua.
+-- IT: Esegui con:  lua5.4 glossario.lua
 
 local lessico = dofile("lessico.lua")
 
