@@ -11,6 +11,8 @@ local it = {
   somma       = "sum",
   prodotto    = "product",
   somma_tutti = "sumall",
+  metti       = "set",
+  prendi      = "get",
   fine        = "end",
 }
 

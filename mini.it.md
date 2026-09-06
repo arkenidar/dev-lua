@@ -49,6 +49,8 @@ naturale per un linguaggio più grande (un tokenizzatore, un vero AST, variabili
 | `somma` | `somma 5 6` | somma due valori (`+`) |
 | `prodotto` | `prodotto 4 2` | moltiplica due valori (`*`) |
 | `somma_tutti` | `somma_tutti 1 2 3 4 fine` | somma **variadica**, terminata da `fine` |
+| `metti` | `metti i 1` | assegna un valore a una variabile |
+| `prendi` | `prendi i` | legge il valore di una variabile |
 
 Le espressioni si annidano ricorsivamente, ad es.
 `scrivi_rigo somma 5 prodotto 4 2` vale `5 + (4 × 2) = 13`.
@@ -57,6 +59,10 @@ Ogni parola chiave ha un alias inglese — `somma` ≡ `sum`, `prodotto` ≡ `pr
 `scrivi_rigo` ≡ `writeline`, `somma_tutti` ≡ `sumall`, `fine` ≡ `end` — vedi
 [§3.2](#32-alias-delle-parole-chiave-italiano--inglese). Il terminatore variadico
 può essere sia `fine` sia `end`.
+
+I valori possono essere salvati nelle variabili con `metti` e riletti con
+`prendi`. I letterali stringa si scrivono tra virgolette corrispondenti (`'Fizz'`
+o `"Fizz"`); le virgolette vengono rimosse quando il letterale è valutato.
 
 ## 3. Glossario
 
@@ -79,6 +85,8 @@ può essere sia `fine` sia `end`.
 | Italiano | Inglese |
 |---------|---------|
 | `fine` | `end` |
+| `metti` | `set` |
+| `prendi` | `get` |
 | `prodotto` | `product` |
 | `scrivi` | `write` |
 | `scrivi_rigo` | `writeline` |
@@ -88,7 +96,9 @@ può essere sia `fine` sia `end`.
 | Inglese | Italiano |
 |---------|---------|
 | `end` | `fine` |
+| `get` | `prendi` |
 | `product` | `prodotto` |
+| `set` | `metti` |
 | `sum` | `somma` |
 | `sumall` | `somma_tutti` |
 | `write` | `scrivi` |

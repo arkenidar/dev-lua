@@ -48,6 +48,8 @@ natural seed for a larger language (a tokenizer, a real AST, variables, etc.).
 | `somma` | `somma 5 6` | add two values (`+`) |
 | `prodotto` | `prodotto 4 2` | multiply two values (`*`) |
 | `somma_tutti` | `somma_tutti 1 2 3 4 fine` | **variadic** sum, terminated by `fine` |
+| `metti` | `metti i 1` | assign a value to a variable |
+| `prendi` | `prendi i` | read a variable's value |
 
 Expressions nest recursively, e.g.
 `scrivi_rigo somma 5 prodotto 4 2` evaluates to `5 + (4 × 2) = 13`.
@@ -56,6 +58,10 @@ Every keyword has an English alias — `somma` ≡ `sum`, `prodotto` ≡ `produc
 `scrivi_rigo` ≡ `writeline`, `somma_tutti` ≡ `sumall`, `fine` ≡ `end` — see
 [§3.2](#32-keyword-aliases-italian--english). The variadic terminator may be
 either `fine` or `end`.
+
+Values can be stored in variables with `metti` (assign) and read back with
+`prendi` (get). String literals are written between matching quotes (`'Fizz'` or
+`"Fizz"`); the quotes are stripped when the literal is evaluated.
 
 ## 3. Glossary
 
@@ -78,6 +84,8 @@ either `fine` or `end`.
 | Italian | English |
 |---------|---------|
 | `fine` | `end` |
+| `metti` | `set` |
+| `prendi` | `get` |
 | `prodotto` | `product` |
 | `scrivi` | `write` |
 | `scrivi_rigo` | `writeline` |
@@ -87,7 +95,9 @@ either `fine` or `end`.
 | English | Italian |
 |---------|---------|
 | `end` | `fine` |
+| `get` | `prendi` |
 | `product` | `prodotto` |
+| `set` | `metti` |
 | `sum` | `somma` |
 | `sumall` | `somma_tutti` |
 | `write` | `scrivi` |

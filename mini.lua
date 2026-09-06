@@ -1,4 +1,7 @@
 local contesto={}
+-- EN: mutable variable store (metti / prendi read and write here)
+-- IT: archivio delle variabili mutabili (metti / prendi leggono e scrivono qui)
+local variabili={}
 local testo='scrivi_rigo somma 5 prodotto 4 2'
 local valori={"scrivi_rigo","somma","5","prodotto","4","2"}
 
@@ -18,7 +21,17 @@ local function valuta(pos)
   if contesto[valore] then
     return contesto[valore]( pos + 1 )
   end
-  return (tonumber(valore) or tostring(valore)), pos + 1
+  local numero = tonumber(valore)
+  if numero then
+    return numero, pos + 1
+  end
+  -- EN: string literal: strip the matching quotes ( '...' or "..." )
+  -- IT: letterale stringa: rimuovi le virgolette corrispondenti ( '...' o "..." )
+  local apice = valore:sub(1,1)
+  if #valore >= 2 and (apice == "'" or apice == "\"") and valore:sub(-1) == apice then
+    return valore:sub(2, -2), pos + 1
+  end
+  return valore, pos + 1
 end
 
 -- EN: Every builtin receives a position and returns (value, next_pos).
@@ -49,6 +62,23 @@ function contesto.prodotto ( pos )
   local a; a, pos = valuta(pos)
   local b; b, pos = valuta(pos)
   return a * b, pos
+end
+
+-- EN: metti <name> <value> : assign a value to a variable. The name is read as a
+-- EN: raw token (not evaluated); the value is evaluated.
+-- IT: metti <nome> <valore> : assegna un valore a una variabile. Il nome è letto come
+-- IT: token grezzo (non valutato); il valore viene valutato.
+function contesto.metti ( pos )
+  local nome = valori[pos]
+  local v; v, pos = valuta(pos + 1)
+  variabili[nome] = v
+  return v, pos
+end
+-- EN: prendi <name> : read a variable's value.
+-- IT: prendi <nome> : legge il valore di una variabile.
+function contesto.prendi ( pos )
+  local nome = valori[pos]
+  return variabili[nome], pos + 1
 end
 
 -- EN: variadic sum: consumes arguments until the terminator ("fine" / "end")
@@ -83,7 +113,7 @@ valuta(1)   -- 1 + 2 + 3 + 4 = 10
 
 valori = {"'100'","somma","5","6"}
 local v = valuta(1)
-print( v )   -- "'100'" (literal)
+print( v )   -- "100" (string literal, quotes stripped)
 
 -- EN: English aliases work too
 -- IT: anche gli alias inglesi funzionano
@@ -92,3 +122,16 @@ valuta(1)   -- 5 + (4 * 2) = 13
 
 valori = {"writeline","sumall","1","2","3","4","end"}
 valuta(1)   -- 1 + 2 + 3 + 4 = 10
+
+-- EN: variables: metti (set) returns the stored value; prendi (get) reads it back
+-- IT: variabili: metti restituisce il valore salvato; prendi lo rilegge
+valori = {"scrivi_rigo","metti","i","somma","2","3"}
+valuta(1)   -- sets i = 2 + 3 = 5, prints 5
+
+valori = {"scrivi_rigo","prendi","i"}
+valuta(1)   -- reads i back, prints 5
+
+-- EN: string literal quotes are stripped
+-- IT: le virgolette dei letterali stringa vengono rimosse
+valori = {"scrivi_rigo","'Fizz'"}
+valuta(1)   -- prints Fizz
