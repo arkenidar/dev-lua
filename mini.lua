@@ -173,6 +173,25 @@ function contesto.se ( pos )
   return v, pos
 end
 
+-- EN: mentre <condition> <body> : evaluate the body repeatedly while the
+-- EN: condition is truthy; the condition is re-evaluated each iteration.
+-- IT: mentre <condizione> <corpo> : valuta il corpo ripetutamente finché la
+-- IT: condizione è vera; la condizione viene rivalutata a ogni iterazione.
+function contesto.mentre ( pos )
+  local inizio = pos
+  local cond
+  cond, pos = valuta(inizio)     -- condition; pos -> body start
+  local corpo = pos
+  local dopo = salta_espr(corpo) -- body extent (parsed, never executed here)
+  if not salta then
+    while cond do
+      valuta(corpo)              -- execute the body
+      cond = valuta(inizio)      -- re-evaluate the condition
+    end
+  end
+  return nil, dopo
+end
+
 -- EN: register English aliases for every built-in keyword
 -- IT: registra gli alias inglesi per ogni parola chiave incorporata
 for it, en in pairs(lessico.it) do
@@ -246,3 +265,13 @@ valuta(1)   -- condition false -> prints falso
 -- IT: il ramo non scelto NON deve essere eseguito
 valori = {"se","uguale","1","1","scrivi_rigo","'si'","scrivi_rigo","'no'"}
 valuta(1)   -- prints si only
+
+-- EN: mentre (while): loop while the condition is true
+-- IT: mentre (while): ciclo finché la condizione è vera
+valori = {"fai","metti","i","1","mentre","non","maggiore","prendi","i","3","fai","scrivi_rigo","prendi","i","metti","i","somma","prendi","i","1","fine","fine"}
+valuta(1)   -- prints 1, 2, 3
+
+-- EN: the new words also work in English
+-- IT: le nuove parole funzionano anche in inglese
+valori = {"do","set","i","1","while","not","greater","get","i","3","do","writeline","get","i","set","i","sum","get","i","1","end","end"}
+valuta(1)   -- prints 1, 2, 3

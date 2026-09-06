@@ -56,6 +56,7 @@ natural seed for a larger language (a tokenizer, a real AST, variables, etc.).
 | `non` | `non uguale 1 2` | logical negation (`not`) |
 | `fai` | `fai ... fine` | a block: sequence of statements, returns the last value |
 | `se` | `se cond ramo_vero ramo_falso` | if/else (lazy: only the taken branch runs) |
+| `mentre` | `mentre cond corpo` | while-loop (condition re-evaluated each iteration) |
 
 Expressions nest recursively, e.g.
 `scrivi_rigo somma 5 prodotto 4 2` evaluates to `5 + (4 × 2) = 13`.
@@ -74,6 +75,8 @@ Comparison words (`uguale`, `maggiore`, `non`) produce boolean values
 `fai ... fine` groups several statements into a single block, returning the last value.
 `se cond ramo_vero ramo_falso` picks one branch; the un-taken branch is parsed but
 not executed, so its side effects never happen.
+`mentre cond corpo` repeats the body while the condition is true; the condition is
+re-evaluated each iteration.
 
 ## 3. Glossary
 
@@ -98,6 +101,7 @@ not executed, so its side effects never happen.
 | `fai` | `do` |
 | `fine` | `end` |
 | `maggiore` | `greater` |
+| `mentre` | `while` |
 | `metti` | `set` |
 | `modulo` | `modulus` |
 | `non` | `not` |
@@ -124,6 +128,7 @@ not executed, so its side effects never happen.
 | `set` | `metti` |
 | `sum` | `somma` |
 | `sumall` | `somma_tutti` |
+| `while` | `mentre` |
 | `write` | `scrivi` |
 | `writeline` | `scrivi_rigo` |
 

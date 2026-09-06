@@ -57,6 +57,7 @@ naturale per un linguaggio più grande (un tokenizzatore, un vero AST, variabili
 | `non` | `non uguale 1 2` | negazione logica (`not`) |
 | `fai` | `fai ... fine` | un blocco: sequenza di istruzioni, restituisce l'ultimo valore |
 | `se` | `se cond ramo_vero ramo_falso` | se/altrimenti (lazy: solo il ramo scelto viene eseguito) |
+| `mentre` | `mentre cond corpo` | ciclo while (la condizione è rivalutata a ogni iterazione) |
 
 Le espressioni si annidano ricorsivamente, ad es.
 `scrivi_rigo somma 5 prodotto 4 2` vale `5 + (4 × 2) = 13`.
@@ -75,6 +76,8 @@ Le parole di confronto (`uguale`, `maggiore`, `non`) producono valori booleani
 `fai ... fine` raggruppa più istruzioni in un singolo blocco, restituendo l'ultimo valore.
 `se cond ramo_vero ramo_falso` sceglie un ramo; il ramo non scelto è analizzato ma
 non eseguito, quindi i suoi effetti non avvengono mai.
+`mentre cond corpo` ripete il corpo finché la condizione è vera; la condizione è
+rivalutata a ogni iterazione.
 
 ## 3. Glossario
 
@@ -99,6 +102,7 @@ non eseguito, quindi i suoi effetti non avvengono mai.
 | `fai` | `do` |
 | `fine` | `end` |
 | `maggiore` | `greater` |
+| `mentre` | `while` |
 | `metti` | `set` |
 | `modulo` | `modulus` |
 | `non` | `not` |
@@ -125,6 +129,7 @@ non eseguito, quindi i suoi effetti non avvengono mai.
 | `set` | `metti` |
 | `sum` | `somma` |
 | `sumall` | `somma_tutti` |
+| `while` | `mentre` |
 | `write` | `scrivi` |
 | `writeline` | `scrivi_rigo` |
 
