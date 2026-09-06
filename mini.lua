@@ -2,6 +2,9 @@ local contesto={}
 local testo='scrivi_rigo somma 5 prodotto 4 2'
 local valori={"scrivi_rigo","somma","5","prodotto","4","2"}
 
+-- bilingual keyword dictionary (single source of truth)
+local lessico = dofile("lessico.lua")
+
 -- valuta(pos) evaluates the token at position pos and returns
 -- (value, next_pos), where next_pos points just past everything consumed.
 -- A keyword consumes itself plus its arguments (recursively).
@@ -40,15 +43,23 @@ function contesto.prodotto ( pos )
   return a * b, pos
 end
 
--- variadic sum: consumes arguments until the terminator "fine"
+-- variadic sum: consumes arguments until the terminator ("fine" / "end")
+-- both languages are accepted as the terminator
+local terminatore = { [lessico.it.fine] = true, [lessico.en[lessico.it.fine]] = true }
+
 function contesto.somma_tutti ( pos )
   local tot = 0
   local v
-  while valori[pos] ~= "fine" do
+  while valori[pos] and not terminatore[valori[pos]] do
     v, pos = valuta(pos)
     tot = tot + v
   end
   return tot, pos + 1
+end
+
+-- register English aliases for every built-in keyword
+for it, en in pairs(lessico.it) do
+  if contesto[it] then contesto[en] = contesto[it] end
 end
 
 -- driver / tests
@@ -61,3 +72,10 @@ valuta(1)   -- 1 + 2 + 3 + 4 = 10
 valori = {"'100'","somma","5","6"}
 local v = valuta(1)
 print( v )   -- "'100'" (literal)
+
+-- English aliases work too
+valori = {"writeline","sum","5","product","4","2"}
+valuta(1)   -- 5 + (4 * 2) = 13
+
+valori = {"writeline","sumall","1","2","3","4","end"}
+valuta(1)   -- 1 + 2 + 3 + 4 = 10

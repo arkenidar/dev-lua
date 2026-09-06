@@ -11,7 +11,7 @@
 
 1. [Overview](#1-overview)
 2. [The language](#2-the-language)
-3. [Glossary (Italian → English)](#3-glossary-italian--english)
+3. [Glossary](#3-glossary)
 4. [Current implementation (Design B)](#4-current-implementation-design-b)
 5. [From fixed arity to variable arity](#5-from-fixed-arity-to-variable-arity)
 6. [Truly variadic functions](#6-truly-variadic-functions)
@@ -50,7 +50,14 @@ natural seed for a larger language (a tokenizer, a real AST, variables, etc.).
 Expressions nest recursively, e.g.
 `scrivi_rigo somma 5 prodotto 4 2` evaluates to `5 + (4 × 2) = 13`.
 
-## 3. Glossary (Italian → English)
+Every keyword has an English alias — `somma` ≡ `sum`, `prodotto` ≡ `product`,
+`scrivi_rigo` ≡ `writeline`, `somma_tutti` ≡ `sumall`, `fine` ≡ `end` — see
+[§3.2](#32-keyword-aliases-italian--english). The variadic terminator may be
+either `fine` or `end`.
+
+## 3. Glossary
+
+### 3.1 Code identifiers (internal names)
 
 | Italian | English |
 |---------|---------|
@@ -59,13 +66,30 @@ Expressions nest recursively, e.g.
 | `valori` | values (the token array) |
 | `indice` / `indici` | index / indices |
 | `pos` | position (cursor into `valori`) |
-| `scrivi` | write (print, no newline) |
-| `scrivi_rigo` | write line (print + newline) |
-| `somma` | sum (`+`) |
-| `prodotto` | product (`*`) |
-| `somma_tutti` | "sum all" (variadic sum) |
 | `testo` | text (the source string, kept as documentation) |
-| `fine` | "end" (the sentinel terminator) |
+
+### 3.2 Keyword aliases (Italian ↔ English)
+
+> Generated from `lessico.lua` — the single source of truth. Regenerate with
+> `lua5.4 glossario.lua`. Both forms are accepted as keywords.
+
+| Italian | English |
+|---------|---------|
+| `fine` | `end` |
+| `prodotto` | `product` |
+| `scrivi` | `write` |
+| `scrivi_rigo` | `writeline` |
+| `somma` | `sum` |
+| `somma_tutti` | `sumall` |
+
+| English | Italian |
+|---------|---------|
+| `end` | `fine` |
+| `product` | `prodotto` |
+| `sum` | `somma` |
+| `sumall` | `somma_tutti` |
+| `write` | `scrivi` |
+| `writeline` | `scrivi_rigo` |
 
 ---
 
@@ -77,6 +101,9 @@ The complete, working source (cursor / position-passing style):
 local contesto={}
 local testo='scrivi_rigo somma 5 prodotto 4 2'
 local valori={"scrivi_rigo","somma","5","prodotto","4","2"}
+
+-- bilingual keyword dictionary (single source of truth)
+local lessico = dofile("lessico.lua")
 
 -- valuta(pos) evaluates the token at position pos and returns
 -- (value, next_pos), where next_pos points just past everything consumed.
@@ -116,15 +143,23 @@ function contesto.prodotto ( pos )
   return a * b, pos
 end
 
--- variadic sum: consumes arguments until the terminator "fine"
+-- variadic sum: consumes arguments until the terminator ("fine" / "end")
+-- both languages are accepted as the terminator
+local terminatore = { [lessico.it.fine] = true, [lessico.en[lessico.it.fine]] = true }
+
 function contesto.somma_tutti ( pos )
   local tot = 0
   local v
-  while valori[pos] ~= "fine" do
+  while valori[pos] and not terminatore[valori[pos]] do
     v, pos = valuta(pos)
     tot = tot + v
   end
   return tot, pos + 1
+end
+
+-- register English aliases for every built-in keyword
+for it, en in pairs(lessico.it) do
+  if contesto[it] then contesto[en] = contesto[it] end
 end
 
 -- driver / tests
@@ -137,6 +172,13 @@ valuta(1)   -- 1 + 2 + 3 + 4 = 10
 valori = {"'100'","somma","5","6"}
 local v = valuta(1)
 print( v )   -- "'100'" (literal)
+
+-- English aliases work too
+valori = {"writeline","sum","5","product","4","2"}
+valuta(1)   -- 5 + (4 * 2) = 13
+
+valori = {"writeline","sumall","1","2","3","4","end"}
+valuta(1)   -- 1 + 2 + 3 + 4 = 10
 ```
 
 ### The contract
@@ -481,15 +523,18 @@ reserved marker — structurally identical to `while valori[pos] ~= "fine"`.
 ## 11. Running it
 
 ```bash
-lua5.4 mini.lua
+lua5.4 mini.lua        # run the interpreter
+lua5.4 glossario.lua   # regenerate the keyword glossary (§3.2)
 ```
 
-Output:
+Output of `mini.lua`:
 
 ```
 13
 10
 '100'
+13
+10
 ```
 
 (`lua`, `lua5.4`, `lua5.1`, or `luajit` all work.)
