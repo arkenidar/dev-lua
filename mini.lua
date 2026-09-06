@@ -251,6 +251,31 @@ end
 -- IT: definizione); il corpo è una singola espressione (per più istruzioni usa
 -- IT: fai ... fine) e restituisce l'ultimo valore, come fai. I parametri si
 -- IT: leggono con prendi.
+-- EN: crea_chiusura builds a function VALUE from a parameter list, a captured
+-- EN: body (token array) and a defining scope. The returned closure takes a
+-- EN: POSITIONAL argument array, binds the parameters in a fresh lexical scope,
+-- EN: and returns the last value of the body. It is the shared core of both
+-- EN: `funzione` (named) and `lambda` (anonymous).
+-- IT: crea_chiusura costruisce un VALORE funzione da una lista di parametri, un
+-- IT: corpo catturato (array di token) e un ambito di definizione. La chiusura
+-- IT: restituita prende un array POSIZIONALE di argomenti, lega i parametri in un
+-- IT: nuovo ambito lessicale e restituisce l'ultimo valore del corpo. È il nucleo
+-- IT: condiviso da `funzione` (con nome) e `lambda` (anonima).
+local function crea_chiusura(parametri, corpo_valori, ambito_def)
+  return function ( argomenti )
+    local amb_esterno, valori_esterni = ambiente, valori
+    ambiente = nuovo_ambito(ambito_def)          -- lexical parent = defining scope
+    for i, par in ipairs(parametri) do
+      ambiente[par] = argomenti and argomenti[i]
+    end
+    valori = corpo_valori
+    local risultato = valuta(1)                  -- evaluate the body
+    valori = valori_esterni
+    ambiente = amb_esterno
+    return risultato
+  end
+end
+
 function contesto.funzione ( pos )
   local nome = valori[pos]                       -- function name (raw token)
   local parametri = {}
@@ -293,25 +318,74 @@ function contesto.funzione ( pos )
     return nil, dopo
   end
 
+  local chiusura = crea_chiusura(parametri, corpo_valori, ambito_def)
+
+  -- EN: the named function is callable as a keyword: the wrapper consumes exactly
+  -- EN: #params arguments and hands them to the closure.
+  -- IT: la funzione con nome è chiamabile come parola chiave: il wrapper consuma
+  -- IT: esattamente #parametri argomenti e li passa alla chiusura.
   contesto[nome] = function ( p )
     local argomenti = {}
-    for _, par in ipairs(parametri) do
+    for _ = 1, #parametri do
       local v; v, p = valuta(p)                -- evaluate args in the caller's scope
-      argomenti[par] = v
+      argomenti[#argomenti + 1] = v
     end
     if salta then return nil, p end            -- skip mode: consume args only
-
-    local amb_esterno, valori_esterni = ambiente, valori
-    ambiente = nuovo_ambito(ambito_def)        -- lexical parent = defining scope
-    for par, v in pairs(argomenti) do ambiente[par] = v end
-    valori = corpo_valori
-    local risultato = valuta(1)                -- evaluate the body
-    valori = valori_esterni
-    ambiente = amb_esterno
-    return risultato, p                        -- body value, caller's cursor
+    return chiusura(argomenti), p
   end
 
+  -- EN: also store the value in the defining scope, so `prendi nome` returns the
+  -- EN: function as a first-class value (it can be passed / returned like a lambda).
+  -- IT: memorizza anche il valore nell'ambito di definizione, così `prendi nome`
+  -- IT: restituisce la funzione come valore di prima classe (passabile/restituibile).
+  ambito_def[nome] = chiusura
+
   return nil, dopo
+end
+
+-- EN: lambda <params...> fine <body> : an anonymous function VALUE. It is the
+-- EN: same closure as `funzione` but returned instead of being registered.
+-- IT: lambda <parametri...> fine <corpo> : un VALORE funzione anonima. È la stessa
+-- IT: chiusura di `funzione` ma restituita invece di essere registrata.
+function contesto.lambda ( pos )
+  local parametri = {}
+  while valori[pos] and not terminatore[valori[pos]] do
+    parametri[#parametri + 1] = valori[pos]
+    pos = pos + 1
+  end
+  pos = pos + 1                                  -- skip the 'fine' terminator
+  local corpo = pos
+
+  local dopo = salta_espr(corpo)                 -- body extent (parsed, not run)
+
+  local corpo_valori = {}
+  for k = corpo, dopo - 1 do
+    corpo_valori[#corpo_valori + 1] = valori[k]
+  end
+  local ambito_def = ambiente
+
+  if salta then return nil, dopo end
+  return crea_chiusura(parametri, corpo_valori, ambito_def), dopo
+end
+
+-- EN: chiama <func> <args...> fine : call a function VALUE. The function
+-- EN: expression is evaluated first; then the arguments are consumed until the
+-- EN: `fine`/`end` terminator (so the extent is known even at parse time) and
+-- EN: handed to the closure as a positional list.
+-- IT: chiama <funzione> <argomenti...> fine : chiama un VALORE funzione. Prima si
+-- IT: valuta l'espressione funzione; poi gli argomenti vengono consumati fino al
+-- IT: terminatore `fine`/`end` (così l'estensione è nota anche in fase di analisi)
+-- IT: e passati alla chiusura come lista posizionale.
+function contesto.chiama ( pos )
+  local f; f, pos = valuta(pos)                  -- the function value
+  local argomenti = {}
+  while valori[pos] and not terminatore[valori[pos]] do
+    local v; v, pos = valuta(pos)
+    argomenti[#argomenti + 1] = v
+  end
+  pos = pos + 1                                  -- skip the 'fine' terminator
+  if salta then return nil, pos end              -- skip mode: don't actually call
+  return f(argomenti), pos
 end
 
 -- EN: register English aliases for every built-in keyword
@@ -563,4 +637,49 @@ valuta(1)                          -- defines double
 testo = [[writeline double 9]]
 valori = tokenizza(testo)
 valuta(1)                          -- 18
+
+
+-- ============================================================
+-- EN: higher-order functions: functions as values (lambda / chiama)
+-- IT: funzioni di ordine superiore: funzioni come valori (lambda / chiama)
+-- ============================================================
+
+-- EN: an anonymous function value: store it in a variable, then call it
+-- IT: un valore funzione anonimo: salvalo in una variabile, poi chiamalo
+testo = [[metti doppio lambda x fine prodotto prendi x 2]]
+valori = tokenizza(testo)
+valuta(1)                          -- stores doppio (a function value)
+testo = [[scrivi_rigo chiama prendi doppio 5 fine]]
+valori = tokenizza(testo)
+valuta(1)                          -- 10
+
+-- EN: a function that RETURNS a function (closure factory, captures k)
+-- IT: una funzione che RESTITUISCE una funzione (fabbrica di chiusure, cattura k)
+testo = [[funzione crea_moltiplicatore k fine lambda x fine prodotto prendi x prendi k]]
+valori = tokenizza(testo)
+valuta(1)                          -- defines crea_moltiplicatore
+testo = [[metti per_3 crea_moltiplicatore 3]]
+valori = tokenizza(testo)
+valuta(1)                          -- stores a closure capturing k = 3
+testo = [[scrivi_rigo chiama prendi per_3 7 fine]]
+valori = tokenizza(testo)
+valuta(1)                          -- 21
+
+-- EN: a function that ACCEPTS a function (higher-order): applies it to 2
+-- IT: una funzione che ACCETTA una funzione (ordine superiore): la applica a 2
+testo = [[funzione applica_due f fine chiama prendi f 2 fine]]
+valori = tokenizza(testo)
+valuta(1)                          -- defines applica_due
+testo = [[scrivi_rigo applica_due lambda x fine prodotto prendi x 2]]
+valori = tokenizza(testo)
+valuta(1)                          -- 4
+
+-- EN: English aliases for the new words (lambda / call)
+-- IT: alias inglesi per le nuove parole (lambda / call)
+testo = [[set d lambda x end product get x 2]]
+valori = tokenizza(testo)
+valuta(1)                          -- stores d (a function value)
+testo = [[writeline call get d 5 end]]
+valori = tokenizza(testo)
+valuta(1)                          -- 10
 

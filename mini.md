@@ -63,6 +63,8 @@ as plain text instead of a hand-written token array.
 | `se` | `se cond ramo_vero ramo_falso` | if/else (lazy: only the taken branch runs) |
 | `mentre` | `mentre cond corpo` | while-loop (condition re-evaluated each iteration) |
 | `funzione` | `funzione nome x fine prodotto prendi x 2` | define a named function (lexical scope) |
+| `lambda` | `lambda x fine prodotto prendi x 2` | an anonymous function **value** (first-class) |
+| `chiama` | `chiama prendi f 5 fine` | call a function value (args terminated by `fine`) |
 
 Expressions nest recursively, e.g.
 `scrivi_rigo somma 5 prodotto 4 2` evaluates to `5 + (4 × 2) = 13`.
@@ -95,6 +97,14 @@ another keeps seeing its parameters even after the outer one returns. Recursion
 is supported, e.g.
 `funzione fatto n fine se uguale prendi n 0 1 prodotto prendi n fatto sottrai prendi n 1`.
 
+`lambda parametri... fine corpo` creates an **anonymous function value** — the same
+closure as `funzione`, but returned instead of registered. Because functions are
+now first-class values, they can be stored in variables (`metti`), passed as
+arguments, and returned from other functions (higher-order functions). `chiama f
+arg... fine` calls a function value `f`; its arguments end at the `fine`/`end`
+terminator. For example, `chiama prendi f 5 fine` calls the function held in
+variable `f` with `5`.
+
 ## 3. Glossary
 
 ### 3.1 Code identifiers (internal names)
@@ -119,9 +129,11 @@ is supported, e.g.
 
 | Italian | English |
 |---------|---------|
+| `chiama` | `call` |
 | `fai` | `do` |
 | `fine` | `end` |
 | `funzione` | `function` |
+| `lambda` | `lambda` |
 | `maggiore` | `greater` |
 | `mentre` | `while` |
 | `metti` | `set` |
@@ -139,6 +151,7 @@ is supported, e.g.
 
 | English | Italian |
 |---------|---------|
+| `call` | `chiama` |
 | `do` | `fai` |
 | `end` | `fine` |
 | `equal` | `uguale` |
@@ -146,6 +159,7 @@ is supported, e.g.
 | `get` | `prendi` |
 | `greater` | `maggiore` |
 | `if` | `se` |
+| `lambda` | `lambda` |
 | `modulus` | `modulo` |
 | `not` | `non` |
 | `product` | `prodotto` |
@@ -485,6 +499,22 @@ FizzBuzz
 Fizz
 19
 Buzz
+```
+
+### 7.5 Higher-order functions (functions as values)
+
+`lambda` builds a function value, `chiama` calls one. A named `funzione` can
+return a function (a closure factory) and accept one as a parameter:
+
+```lua
+-- a function that RETURNS a function (captures k)
+funzione crea_moltiplicatore k fine lambda x fine prodotto prendi x prendi k
+metti per_3 crea_moltiplicatore 3
+scrivi_rigo chiama prendi per_3 7 fine        -- 21
+
+-- a function that ACCEPTS a function
+funzione applica_due f fine chiama prendi f 2 fine
+scrivi_rigo applica_due lambda x fine prodotto prendi x 2   -- 4
 ```
 
 ---

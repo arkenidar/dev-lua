@@ -6,6 +6,7 @@
 -- IT: i nomi inglesi sono alias derivati da questa tabella, così i due non possono divergere.
 
 local it = {
+  chiama      = "call",
   scrivi      = "write",
   scrivi_rigo = "writeline",
   somma       = "sum",
@@ -22,6 +23,7 @@ local it = {
   se          = "if",
   mentre      = "while",
   funzione    = "function",
+  lambda      = "lambda",
   fine        = "end",
 }
 

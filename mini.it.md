@@ -64,6 +64,8 @@ semplice invece di un array di token costruito a mano.
 | `se` | `se cond ramo_vero ramo_falso` | se/altrimenti (lazy: solo il ramo scelto viene eseguito) |
 | `mentre` | `mentre cond corpo` | ciclo while (la condizione è rivalutata a ogni iterazione) |
 | `funzione` | `funzione nome x fine prodotto prendi x 2` | definisce una funzione con nome (ambito lessicale) |
+| `lambda` | `lambda x fine prodotto prendi x 2` | un **valore** funzione anonima (di prima classe) |
+| `chiama` | `chiama prendi f 5 fine` | chiama un valore funzione (argomenti terminati da `fine`) |
 
 Le espressioni si annidano ricorsivamente, ad es.
 `scrivi_rigo somma 5 prodotto 4 2` vale `5 + (4 × 2) = 13`.
@@ -96,6 +98,14 @@ funzione definita dentro un'altra continua a vedere i suoi parametri anche dopo
 che quella esterna ritorna. La ricorsione è supportata, ad es.
 `funzione fatto n fine se uguale prendi n 0 1 prodotto prendi n fatto sottrai prendi n 1`.
 
+`lambda parametri... fine corpo` crea un **valore funzione anonima** — la stessa
+chiusura di `funzione`, ma restituita invece di essere registrata. Poiché le
+funzioni ora sono valori di prima classe, possono essere salvate in variabili
+(`metti`), passate come argomenti e restituite da altre funzioni (funzioni di
+ordine superiore). `chiama f arg... fine` chiama un valore funzione `f`; i suoi
+argomenti terminano al terminatore `fine`/`end`. Ad esempio, `chiama prendi f 5
+fine` chiama con `5` la funzione contenuta nella variabile `f`.
+
 ## 3. Glossario
 
 ### 3.1 Identificatori del codice (nomi interni)
@@ -120,9 +130,11 @@ che quella esterna ritorna. La ricorsione è supportata, ad es.
 
 | Italiano | Inglese |
 |---------|---------|
+| `chiama` | `call` |
 | `fai` | `do` |
 | `fine` | `end` |
 | `funzione` | `function` |
+| `lambda` | `lambda` |
 | `maggiore` | `greater` |
 | `mentre` | `while` |
 | `metti` | `set` |
@@ -140,6 +152,7 @@ che quella esterna ritorna. La ricorsione è supportata, ad es.
 
 | Inglese | Italiano |
 |---------|---------|
+| `call` | `chiama` |
 | `do` | `fai` |
 | `end` | `fine` |
 | `equal` | `uguale` |
@@ -147,6 +160,7 @@ che quella esterna ritorna. La ricorsione è supportata, ad es.
 | `get` | `prendi` |
 | `greater` | `maggiore` |
 | `if` | `se` |
+| `lambda` | `lambda` |
 | `modulus` | `modulo` |
 | `not` | `non` |
 | `product` | `prodotto` |
@@ -486,6 +500,23 @@ FizzBuzz
 Fizz
 19
 Buzz
+```
+
+### 7.5 Funzioni di ordine superiore (funzioni come valori)
+
+`lambda` costruisce un valore funzione, `chiama` ne chiama uno. Una `funzione`
+con nome può restituire una funzione (fabbrica di chiusure) e accettarne una
+come parametro:
+
+```lua
+-- una funzione che RESTITUISCE una funzione (cattura k)
+funzione crea_moltiplicatore k fine lambda x fine prodotto prendi x prendi k
+metti per_3 crea_moltiplicatore 3
+scrivi_rigo chiama prendi per_3 7 fine        -- 21
+
+-- una funzione che ACCETTA una funzione
+funzione applica_due f fine chiama prendi f 2 fine
+scrivi_rigo applica_due lambda x fine prodotto prendi x 2   -- 4
 ```
 
 ---
