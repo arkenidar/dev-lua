@@ -14,6 +14,18 @@ local valori={"scrivi_rigo","somma","5","prodotto","4","2"}
 -- IT: dizionario bilingue delle parole chiave (unica fonte di verità)
 local lessico = dofile("lessico.lua")
 
+-- EN: decodifica(s) decodes escape sequences in a string literal:
+-- EN: \n newline, \t tab, \' \" quote, \\ backslash; any other \x -> x.
+-- IT: decodifica(s) decodifica le sequenze di escape in un letterale stringa:
+-- IT: \n a capo, \t tabulazione, \' \" virgolette, \\ backslash; ogni \x -> x.
+local function decodifica(s)
+  return (s:gsub("\\(.)", function(c)
+    if c == "n" then return "\n"
+    elseif c == "t" then return "\t" end
+    return c
+  end))
+end
+
 -- EN: valuta(pos) evaluates the token at position pos and returns
 -- EN: (value, next_pos), where next_pos points just past everything consumed.
 -- EN: A keyword consumes itself plus its arguments (recursively).
@@ -34,7 +46,7 @@ local function valuta(pos)
   -- IT: letterale stringa: rimuovi le virgolette corrispondenti ( '...' o "..." )
   local apice = valore:sub(1,1)
   if #valore >= 2 and (apice == "'" or apice == "\"") and valore:sub(-1) == apice then
-    return valore:sub(2, -2), pos + 1
+    return decodifica(valore:sub(2, -2)), pos + 1
   end
   return valore, pos + 1
 end
@@ -202,10 +214,16 @@ end
 -- EN: Whitespace separates tokens; a quoted literal ( '...' or "..." ) may
 -- EN: contain spaces and stays a single token. Quotes are kept so that valuta
 -- EN: strips them, exactly as with the hand-written arrays below.
+-- EN: A "--" starts a comment that runs to the end of the line. Inside a
+-- EN: quoted literal a backslash escapes the next character (so \' and \"
+-- EN: don't close the string); decoding happens later in valuta (decodifica).
 -- IT: tokenizza divide una stringa sorgente in un array piatto di token.
 -- IT: Gli spazi separano i token; un letterale tra virgolette ( '...' o "..." )
 -- IT: può contenere spazi e resta un singolo token. Le virgolette restano,
 -- IT: così valuta le rimuove, come negli array scritti a mano qui sotto.
+-- IT: Un "--" avvia un commento che arriva a fine riga. Dentro un letterale
+-- IT: un backslash esclude il carattere successivo (così \' e \" non chiudono
+-- IT: la stringa); la decodifica avviene dopo in valuta (decodifica).
 local function tokenizza(testo)
   local token = {}
   local i, n = 1, #testo
@@ -213,8 +231,14 @@ local function tokenizza(testo)
     local c = testo:sub(i, i)
     if c:match("%s") then
       i = i + 1
+    elseif c == "-" and testo:sub(i + 1, i + 1) == "-" then
+      i = (testo:find("\n", i) or n) + 1
     elseif c == "'" or c == '"' then
-      local j = testo:find(c, i + 1, true) or (n + 1)
+      local j = i + 1
+      while j <= n and testo:sub(j, j) ~= c do
+        if testo:sub(j, j) == "\\" then j = j + 1 end
+        j = j + 1
+      end
       token[#token + 1] = testo:sub(i, j)
       i = j + 1
     else
@@ -351,3 +375,19 @@ testo = [[
 ]]
 valori = tokenizza(testo)
 valuta(1)   -- 1 2 3
+
+-- EN: comments: -- to end of line is ignored by the tokenizer
+-- IT: commenti: -- fino a fine riga viene ignorato dal tokenizzatore
+testo = [[scrivi_rigo 'ciao' -- greets]]
+valori = tokenizza(testo)
+valuta(1)   -- ciao
+
+-- EN: escapes: \n newline, \' escaped quote inside a literal
+-- IT: escape: \n a capo, \' virgoletta esclusa dentro un letterale
+testo = [[scrivi_rigo 'a\nb']]
+valori = tokenizza(testo)
+valuta(1)   -- a then b (two lines)
+
+testo = [[scrivi_rigo 'it\'s']]
+valori = tokenizza(testo)
+valuta(1)   -- it's

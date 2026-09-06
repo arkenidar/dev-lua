@@ -71,7 +71,9 @@ either `fine` or `end`.
 
 Values can be stored in variables with `metti` (assign) and read back with
 `prendi` (get). String literals are written between matching quotes (`'Fizz'` or
-`"Fizz"`); the quotes are stripped when the literal is evaluated.
+`"Fizz"`); the quotes are stripped when the literal is evaluated. Escapes inside
+literals (`\n`, `\t`, `\'`, `\"`, `\\`) are decoded, and `--` starts a comment
+that runs to the end of the line.
 
 Comparison words (`uguale`, `maggiore`, `non`) produce boolean values
 (`true`/`false`), which the control-flow words (introduced later) rely on.
@@ -94,6 +96,7 @@ re-evaluated each iteration.
 | `pos` | position (cursor into `valori`) |
 | `testo` | text (the source string, split into `valori` by `tokenizza`) |
 | `tokenizza` | tokenize (splits `testo` into the `valori` token array) |
+| `decodifica` | decode (decodes `\n`, `\t`, `\'`, `\"`, `\\` in string literals) |
 
 ### 3.2 Keyword aliases (Italian ↔ English)
 
@@ -702,6 +705,10 @@ Hello World
 1
 2
 3
+ciao
+a
+b
+it's
 ```
 
 (`lua`, `lua5.4`, `lua5.1`, or `luajit` all work.)

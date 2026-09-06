@@ -73,6 +73,8 @@ può essere sia `fine` sia `end`.
 I valori possono essere salvati nelle variabili con `metti` e riletti con
 `prendi`. I letterali stringa si scrivono tra virgolette corrispondenti (`'Fizz'`
 o `"Fizz"`); le virgolette vengono rimosse quando il letterale è valutato.
+Le sequenze di escape nei letterali (`\n`, `\t`, `\'`, `\"`, `\\`) vengono
+decodificate, e `--` avvia un commento che arriva a fine riga.
 
 Le parole di confronto (`uguale`, `maggiore`, `non`) producono valori booleani
 (`true`/`false`), su cui si basano le parole di controllo di flusso (introdotte più avanti).
@@ -95,6 +97,7 @@ rivalutata a ogni iterazione.
 | `pos` | position (cursore dentro `valori`) |
 | `testo` | text (la stringa sorgente, divisa in `valori` da `tokenizza`) |
 | `tokenizza` | tokenize (divide `testo` nell'array di token `valori`) |
+| `decodifica` | decode (decodifica `\n`, `\t`, `\'`, `\"`, `\\` nei letterali stringa) |
 
 ### 3.2 Alias delle parole chiave (Italiano ↔ Inglese)
 
@@ -708,6 +711,10 @@ Hello World
 1
 2
 3
+ciao
+a
+b
+it's
 ```
 
 (funzionano `lua`, `lua5.4`, `lua5.1` o `luajit`.)
