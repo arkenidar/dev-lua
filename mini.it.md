@@ -418,6 +418,51 @@ operatore non commutativo, ad es. un ipotetico `sottrai`:
 | 8 | — | — | `somma` = `13`, restituisce `pos=7` |
 | 9 | — | — | `scrivi_rigo` stampa `13` |
 
+### 7.4 FizzBuzz (1..20)
+
+L'intero insieme di controllo di flusso — variabili, confronti, `se`, `mentre` e
+blocchi — si compone nel classico FizzBuzz:
+
+```lua
+valori = {
+  "fai","metti","i","1",
+  "mentre","non","maggiore","prendi","i","20","fai",
+    "se","uguale","0","modulo","prendi","i","15","scrivi_rigo","'FizzBuzz'",
+    "se","uguale","0","modulo","prendi","i","3","scrivi_rigo","'Fizz'",
+    "se","uguale","0","modulo","prendi","i","5","scrivi_rigo","'Buzz'","scrivi_rigo","prendi","i",
+    "metti","i","somma","prendi","i","1",
+  "fine","fine"
+}
+valuta(1)
+```
+
+Il `se cond ramo_vero ramo_falso` annidato forma una catena se/altrimenti: se
+`i % 15 == 0` stampa `FizzBuzz`, altrimenti se `i % 3 == 0` stampa `Fizz`,
+altrimenti se `i % 5 == 0` stampa `Buzz`, altrimenti stampa il numero:
+
+```
+1
+2
+Fizz
+4
+Buzz
+Fizz
+7
+8
+Fizz
+Buzz
+11
+Fizz
+13
+14
+FizzBuzz
+16
+17
+Fizz
+19
+Buzz
+```
+
 ---
 
 ## 8. Analisi di robustezza
@@ -592,9 +637,68 @@ Output di `mini.lua`:
 ```
 13
 10
-'100'
+100
 13
 10
+5
+5
+Fizz
+1
+true
+true
+true
+a
+b
+3
+vero
+falso
+si
+1
+2
+3
+1
+2
+3
+1
+2
+Fizz
+4
+Buzz
+Fizz
+7
+8
+Fizz
+Buzz
+11
+Fizz
+13
+14
+FizzBuzz
+16
+17
+Fizz
+19
+Buzz
+1
+2
+Fizz
+4
+Buzz
+Fizz
+7
+8
+Fizz
+Buzz
+11
+Fizz
+13
+14
+FizzBuzz
+16
+17
+Fizz
+19
+Buzz
 ```
 
 (funzionano `lua`, `lua5.4`, `lua5.1` o `luajit`.)

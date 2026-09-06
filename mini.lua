@@ -275,3 +275,29 @@ valuta(1)   -- prints 1, 2, 3
 -- IT: le nuove parole funzionano anche in inglese
 valori = {"do","set","i","1","while","not","greater","get","i","3","do","writeline","get","i","set","i","sum","get","i","1","end","end"}
 valuta(1)   -- prints 1, 2, 3
+
+-- EN: FizzBuzz (Italian, 1..20): Fizz/Buzz/FizzBuzz or the number
+-- IT: FizzBuzz (italiano, 1..20): Fizz/Buzz/FizzBuzz oppure il numero
+valori = {
+  "fai","metti","i","1",
+  "mentre","non","maggiore","prendi","i","20","fai",
+    "se","uguale","0","modulo","prendi","i","15","scrivi_rigo","'FizzBuzz'",
+    "se","uguale","0","modulo","prendi","i","3","scrivi_rigo","'Fizz'",
+    "se","uguale","0","modulo","prendi","i","5","scrivi_rigo","'Buzz'","scrivi_rigo","prendi","i",
+    "metti","i","somma","prendi","i","1",
+  "fine","fine"
+}
+valuta(1)
+
+-- EN: FizzBuzz (English, 1..20)
+-- IT: FizzBuzz (inglese, 1..20)
+valori = {
+  "do","set","i","1",
+  "while","not","greater","get","i","20","do",
+    "if","equal","0","modulus","get","i","15","writeline","'FizzBuzz'",
+    "if","equal","0","modulus","get","i","3","writeline","'Fizz'",
+    "if","equal","0","modulus","get","i","5","writeline","'Buzz'","writeline","get","i",
+    "set","i","sum","get","i","1",
+  "end","end"
+}
+valuta(1)

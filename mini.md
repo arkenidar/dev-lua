@@ -417,6 +417,51 @@ non-commutative operator, e.g. a hypothetical `sottrai` (subtract):
 | 8 | — | — | `somma` = `13`, returns `pos=7` |
 | 9 | — | — | `scrivi_rigo` prints `13` |
 
+### 7.4 FizzBuzz (1..20)
+
+The full control-flow set — variables, comparisons, `se`, `mentre`, and blocks —
+composes into the classic FizzBuzz:
+
+```lua
+valori = {
+  "fai","metti","i","1",
+  "mentre","non","maggiore","prendi","i","20","fai",
+    "se","uguale","0","modulo","prendi","i","15","scrivi_rigo","'FizzBuzz'",
+    "se","uguale","0","modulo","prendi","i","3","scrivi_rigo","'Fizz'",
+    "se","uguale","0","modulo","prendi","i","5","scrivi_rigo","'Buzz'","scrivi_rigo","prendi","i",
+    "metti","i","somma","prendi","i","1",
+  "fine","fine"
+}
+valuta(1)
+```
+
+The nested `se cond ramo_vero ramo_falso` forms an if/else-if chain: if
+`i % 15 == 0` print `FizzBuzz`, else if `i % 3 == 0` print `Fizz`, else if
+`i % 5 == 0` print `Buzz`, otherwise print the number:
+
+```
+1
+2
+Fizz
+4
+Buzz
+Fizz
+7
+8
+Fizz
+Buzz
+11
+Fizz
+13
+14
+FizzBuzz
+16
+17
+Fizz
+19
+Buzz
+```
+
 ---
 
 ## 8. Robustness analysis
@@ -586,9 +631,68 @@ Output of `mini.lua`:
 ```
 13
 10
-'100'
+100
 13
 10
+5
+5
+Fizz
+1
+true
+true
+true
+a
+b
+3
+vero
+falso
+si
+1
+2
+3
+1
+2
+3
+1
+2
+Fizz
+4
+Buzz
+Fizz
+7
+8
+Fizz
+Buzz
+11
+Fizz
+13
+14
+FizzBuzz
+16
+17
+Fizz
+19
+Buzz
+1
+2
+Fizz
+4
+Buzz
+Fizz
+7
+8
+Fizz
+Buzz
+11
+Fizz
+13
+14
+FizzBuzz
+16
+17
+Fizz
+19
+Buzz
 ```
 
 (`lua`, `lua5.4`, `lua5.1`, or `luajit` all work.)
