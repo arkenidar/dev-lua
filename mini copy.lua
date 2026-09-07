@@ -26,6 +26,14 @@ end
 local function misura(indice)
     local valore = valori[indice]
     assert(type(valore) == "string")
+    if valore == "do" then
+        local cursore = indice
+        cursore = cursore + 1
+        while valori[cursore] ~= "end" do
+            cursore = cursore + misura(cursore)
+        end
+        return cursore - indice + 1
+    end
     local numero, prefisso = appendice(valore)
     if numero ~= nil and contesto[prefisso] ~= nil then
         local funzione = contesto[prefisso]
@@ -43,9 +51,14 @@ local function misura(indice)
     end
 end
 
+local fai
+
 local function valuta(indice)
     local valore = valori[indice]
     assert(type(valore) == "string")
+    if valore == "do" then
+        return fai(indice)
+    end
     local numero, prefisso = appendice(valore)
     if numero ~= nil and contesto[prefisso] ~= nil then
         local funzione = contesto[prefisso]
@@ -59,6 +72,32 @@ local function valuta(indice)
         return funzione(indici)
     end
     return tonumber(valore) or tostring(valore)
+end
+
+fai = function(indice)
+    local valore = valori[indice]
+    assert(type(valore) == "string")
+    assert(valore == "do")
+    local restituito = nil
+    local cursore = indice
+    cursore = cursore + 1
+    while valori[cursore] ~= "end" do
+        restituito = valuta(cursore)
+        cursore = cursore + misura(cursore)
+    end
+    return restituito
+end
+
+local function sequenza(indice)
+    local valore = valori[indice]
+    assert(type(valore) == "string")
+    local restituito = nil
+    local cursore = indice
+    while cursore <= #valori do
+        restituito = valuta(cursore)
+        cursore = cursore + misura(cursore)
+    end
+    return restituito
 end
 
 function contesto.scrivi(indici)
@@ -102,3 +141,10 @@ valuta(1)
 
 valori = {"scrivi_rigo#1", "se#3", "vero#0", "1", "2"} -- => 1
 valuta(1)
+
+valori = {"do", "scrivi_rigo#1", "111", "scrivi_rigo#1", "222", "end", "scrivi_rigo#1", "333"}
+print(misura(1)) -- => 6
+sequenza(1) -- => 111 222 333
+
+valori = {"se#3", "falso#0", "do", "scrivi_rigo#1", "111", "scrivi_rigo#1", "222", "end", "scrivi_rigo#1", "333"}
+sequenza(1) -- => 111 and 222 (if true) , or just 333 (if false)
