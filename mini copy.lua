@@ -1,7 +1,8 @@
-local contesto={}
-local testo='scrivi_rigo#1 somma#2 5 prodotto#2 4 2'
-local valori={"scrivi_rigo#1","somma#2","5","prodotto#2","4","2"}
-valori={"'100'","somma#2","5","6"}
+local contesto = { }
+local valori = { }
+
+-- local testo='scrivi_rigo#1 somma#2 5 prodotto#2 4 2'
+-- valori={"scrivi_rigo#1","somma#2","5","prodotto#2","4","2"}
 
 local function split_int(text)
     assert( type(text) == "string" )
@@ -78,17 +79,18 @@ function contesto.falso ( indici )
   return false
 end
 
-contesto.scrivi_rigo({1})
-print( contesto.somma({3,4}) )
-print( valuta(2) )
-print( valuta(1) )
+valori = { "'100'","somma#2","5","6" }
+contesto.scrivi_rigo({1}) -- => '100'
+print( contesto.somma({3,4}) ) -- => 11
+print( valuta(2) ) -- => 11
+print( valuta(1) ) -- => '100'
 
--- 'scrivi_rigo somma 5 prodotto 4 2'
+-- 'scrivi_rigo#1 somma#2 5 prodotto#2 4 2'
 valori={"scrivi_rigo#1","somma#2","5","prodotto#2","4","2"} -- => 13
 valuta(1)
 
 valori={"scrivi_rigo#1","somma#2", "prodotto#2","4","2", "5"} -- => 13
 valuta(1)
 
-valori={"scrivi_rigo#1","se#3","vero#0","1","2"}
+valori={"scrivi_rigo#1","se#3","vero#0","1","2"} -- => 1
 valuta(1)
